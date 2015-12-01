@@ -18,14 +18,14 @@ function OnStart() {
     if (!txts) { //load default values if none saved.
         txts = "[select commands]\t\r";
         txts +="Help\t?\r";
-        txts +="Reset\t~\r";
+        txts +="Reset\t#\r";
         txts +="Show Pin State\tv\r";
         txts +="ADC In\td\r";
         txts +="ADC Loop\tD\r";
         txts +="Delay 1uS\t&\r";
         txts +="Delay 1mS\t%\r";
         txts +="Frequency Counter\tf\r";
-        txts +="Generate #Khz %Duty\tg\r";
+        txts +="Generate#Khz %Duty\tg\r";
         txts +="Control AUX\tc\r";
         txts +="Control /CS\tC\r";
         txts +="AUX/CS low\ta\r";
@@ -103,6 +103,7 @@ function OnStart() {
     
     //Create an edit box containing the constructed commands
     edt = app.CreateTextEdit( "", 0.96, 0.2, "NoSpell" ); 
+    edt.SetOnChange( edt_OnChange );
     lay.AddChild( edt ); 
     
     //Create program spinner.
@@ -150,6 +151,7 @@ function btnConnect_OnTouch()
         return;
     }
     usb.SetOnReceive( usb_OnReceive );
+    Send ("i"); //get version / status to start.
     app.ShowPopup( "Connected" );
 } 
 
@@ -173,7 +175,8 @@ function btnSend_OnTouch()
 
 //Called when user touches reset button. 
 function btnReset_OnTouch() { 
-    edt.SetText( "" );
+    edt.SetText( "" ); //clear text edit.
+    spin.SelectItem(descs[0]); //clear pull down so next selection works
     } 
 
 function btnReset_OnLongTouch() {
@@ -220,6 +223,15 @@ function btnOk_OnTouch(item) {
     app.ShowPopup("Saved "+desc);
     } 
 
+//Called when text entered directly in edit area
+function edt_OnChange() {
+    if ("\n"==edt.GetText().slice(-1)) { //if they just pressed return
+        edt.SetText( edt.GetText().slice(0,-1) ); //remove the return.
+        btnSend_OnTouch(); //pretend the user pressed send
+        edt.SetCursorPos( edt.GetText().length ); //move cursor to end
+        }
+    }
+
 //Called when user touches program spinner.
 //http://dangerousprototypes.com/docs/Bus_Pirate_menu_options_guide
 function spin_OnTouch( item ) {
@@ -228,8 +240,62 @@ function spin_OnTouch( item ) {
     if ("MACRO" == cmds[item]) {
         s = "<"+num+"="+edt.GetText()+">";
         }
+    if ("m3" == cmds[item]) { //UART needs baud, data/parity, stop, polarity, out
+//http://dangerousprototypes.com/docs/UART
+        dlgTxt = app.CreateDialog( "UART mode" );
+        
+        //Create a layout for dialog.
+        layDlg = app.CreateLayout( "linear", "Vertical,Left" );
+        //layDlg.SetPadding( 0.02, 0, 0.02, 0.02 );
+        dlgTxt.AddLayout( layDlg );
+        layDlgL1 = app.CreateLayout( "linear", "Horizontal,Left" );
+        layDlg.AddChild(layDlgL1);
+
+        UartBaud = ["1. 300","2. 1200","3. 2400","4. 4800","5. 9600","6. 19200"
+                    "7. 38400","8. 57600","9. 115200"]
+        spinBaud = app.CreateSpinner(UartBaud.join(",") , 0.4 );
+        layDlgL1.AddChild( spinBaud );
+        
+        UartDP =["None 8","Even 8","Odd 8","None 9"];
+        spinDP = app.CreateSpinner(UartDP.join(",") , 0.3 );
+        layDlgL1.AddChild( spinDP );
+        
+        spinSB = app.CreateSpinner("1 ,2 " , 0.2 );
+        layDlgL1.AddChild( spinSB );
+    
+        spinP = app.CreateSpinner("1 Idle 1,2 Idle 0" , 0.4 );
+        layDlg.AddChild( spinP );
+    
+        spinOut = app.CreateSpinner("2 Normal (3.3/GND),1 OC (HiZ/GND)" , 0.6 );
+        layDlg.AddChild( spinOut );
+    
+        btnUartOk = app.CreateButton( "Ok", 0.23, 0.1 ); 
+        btnUartOk.SetOnTouch( btnUartOk_OnTouch ); 
+        layDlg.AddChild( btnUartOk ); 
+        
+        dlgTxt.Show();
+        }
     edt.SetText( s );
+    edt.SetCursorPos( s.length ); //move cursor to end of string
     }
+
+//called when user closes UART setup dialog
+function btnUartOk_OnTouch(item) {
+    var baud=spinBaud.GetText();
+    baud = baud.slice(0,baud.indexOf("."))+" ";
+    var DP = spinDP.GetText();
+    for (var i=UartDP.length;i>=0;i--) {
+        if (DP == UartDP[i]) { DP=(i+1)+" "; break; }
+        }
+    edt.SetText( "m3 "
+        +baud
+        +DP
+        +spinSB.GetText().slice(0,2) 
+        +spinP.GetText().slice(0,2) 
+        +spinOut.GetText().slice(0,2) 
+        );
+    dlgTxt.Hide();
+    } 
 
 //Check connection and send data.  
 function Send( s ) { 
@@ -239,6 +305,7 @@ function Send( s ) {
 
 //Called when we get data from Espruino.
 function usb_OnReceive( data ) {
+    
     log += data;
     var logLines = log.split("\n");
     if( !maxLines ) maxLines = edtReply.GetMaxLines()-1;

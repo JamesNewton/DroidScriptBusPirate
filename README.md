@@ -14,6 +14,7 @@ The point of this script is to make that easy by providing a list of commands, w
 
 TODO: 
 - Ask for values to enter after the code is selected for those that have parameters. E.g. to generate a pulse train you send "g", but then it wants KHz, and duty cycle. It would be nice to ask for those via a dialog box. 
+- - Did this for entering UART Mode, but that is a one off... should be able to figure out what to ask from the description. E.g. #KHz means "add an edit field in the dialog box with KHz as the prompt, and accept numbers only."
 - Add a 'voltmeter' mode where the ADC reading is repeatedly displayed in large letters, center screen.
 - Add scaling to the voltmeter where a potentiometer can be used as a voltage divider to allow voltages higher than +5 to be read. Start by calebrating the scaling by connecting the input to one of the voltage supplies, and turning the potentiometer until the desired voltage is read. E.g. if you want a 1:10 scale, and you connect to the +5 supply, you should read 0.5 volts. Once the unit is calibrated, and the input connected to the device under test, scale the reading to the actual voltage. E.g. if scaled to 1:10, and 1 volt is read on the ADC, display 10 volts. 
 - Add a low frequency 'oscilloscope' mode using the binary ADC polling function. There are python scripts for this which can probably be translated.

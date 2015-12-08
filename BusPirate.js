@@ -98,7 +98,7 @@ function OnStart() {
     edtReply = app.CreateText( "", 0.96, 0.6, "MultiLine,Left,Monospace" ); 
     edtReply.SetMargins( 0,0,0,0.01 ); 
     edtReply.SetBackColor( "#333333" );
-    edtReply.SetTextSize( 12 ); 
+    edtReply.SetTextSize( 8 ); 
     lay.AddChild( edtReply ); 
     
     //Create an edit box containing the constructed commands
@@ -240,43 +240,56 @@ function spin_OnTouch( item ) {
     if ("MACRO" == cmds[item]) {
         s = "<"+num+"="+edt.GetText()+">";
         }
-    if ("m3" == cmds[item]) { //UART needs baud, data/parity, stop, polarity, out
-//http://dangerousprototypes.com/docs/UART
-        dlgTxt = app.CreateDialog( "UART mode" );
-        
-        //Create a layout for dialog.
-        layDlg = app.CreateLayout( "linear", "Vertical,Left" );
-        //layDlg.SetPadding( 0.02, 0, 0.02, 0.02 );
-        dlgTxt.AddLayout( layDlg );
-        layDlgL1 = app.CreateLayout( "linear", "Horizontal,Left" );
-        layDlg.AddChild(layDlgL1);
-
-        UartBaud = ["1. 300","2. 1200","3. 2400","4. 4800","5. 9600","6. 19200"
-                    "7. 38400","8. 57600","9. 115200"]
-        spinBaud = app.CreateSpinner(UartBaud.join(",") , 0.4 );
-        layDlgL1.AddChild( spinBaud );
-        
-        UartDP =["None 8","Even 8","Odd 8","None 9"];
-        spinDP = app.CreateSpinner(UartDP.join(",") , 0.3 );
-        layDlgL1.AddChild( spinDP );
-        
-        spinSB = app.CreateSpinner("1 ,2 " , 0.2 );
-        layDlgL1.AddChild( spinSB );
-    
-        spinP = app.CreateSpinner("1 Idle 1,2 Idle 0" , 0.4 );
-        layDlg.AddChild( spinP );
-    
-        spinOut = app.CreateSpinner("2 Normal (3.3/GND),1 OC (HiZ/GND)" , 0.6 );
-        layDlg.AddChild( spinOut );
-    
-        btnUartOk = app.CreateButton( "Ok", 0.23, 0.1 ); 
-        btnUartOk.SetOnTouch( btnUartOk_OnTouch ); 
-        layDlg.AddChild( btnUartOk ); 
-        
-        dlgTxt.Show();
+    if ("m3" == cmds[item]) { //UART needs baud, data/parity, stop, polarity, out 
+        btnUart_OnTouch();
+        }
+    if ("D" == cmds[item]) {
         }
     edt.SetText( s );
     edt.SetCursorPos( s.length ); //move cursor to end of string
+    }
+
+//called when the user selects UART mode
+function btnUart_OnTouch() {  
+    var txt="";
+    dlgTxt = app.CreateDialog( "UART mode" );
+        
+    //Create a layout for dialog.
+    layDlg = app.CreateLayout( "linear", "Vertical,Left" );
+    //layDlg.SetPadding( 0.02, 0, 0.02, 0.02 );
+    dlgTxt.AddLayout( layDlg );
+    layDlgL1 = app.CreateLayout( "linear", "Horizontal,Left" );
+    layDlg.AddChild(layDlgL1);
+    //Create baud spinner.
+    txt ="1. 300,2. 1200,3. 2400,4. 4800,5. 9600,6. 19200,7. 38400,";
+    txt+="8. 57600,9. 115200"
+    spinBaud = app.CreateSpinner(txt , 0.4 );
+    layDlgL1.AddChild( spinBaud );
+    
+    //Create data/parity spinner
+    UartDP =["None 8","Even 8","Odd 8","None 9"];
+    spinDP = app.CreateSpinner(UartDP.join(",") , 0.3 );
+    layDlgL1.AddChild( spinDP );
+    
+    //Create stop bits spinner
+    spinSB = app.CreateSpinner("1 ,2 " , 0.2 );
+    layDlgL1.AddChild( spinSB );
+
+    //Create polarity spinner
+    spinP = app.CreateSpinner("1 Idle 1,2 Idle 0" , 0.4 );
+    layDlg.AddChild( spinP );
+    
+    //Create output spinner
+    spinOut = app.CreateSpinner("2 Normal (3.3/GND),1 OC (HiZ/GND)" , 0.6 );
+    layDlg.AddChild( spinOut );
+    
+    //Create an ok button. 
+    btnUartOk = app.CreateButton( "Ok", 0.23, 0.1 ); 
+    btnUartOk.SetOnTouch( btnUartOk_OnTouch ); 
+    layDlg.AddChild( btnUartOk ); 
+        
+    //Show dialog.
+    dlgTxt.Show();
     }
 
 //called when user closes UART setup dialog
@@ -303,13 +316,24 @@ function Send( s ) {
     else app.ShowPopup( "Please connect" ); 
     }
 
-//Called when we get data from Espruino.
+//Called when we get data from the BusPirate
 function usb_OnReceive( data ) {
-    
-    log += data;
+    var i;
+    //Need to translate tabs into spaces.
+    lines = data.split("\n");
+    for (var l = 0; l < lines.length; l++) {
+         tabs = lines[l].split("\t");
+         for (var i = 0; i < tabs.length-1; i++) {
+            log += tabs[i]+("        ").slice(0,8-(tabs[i].length % 8));
+            }
+         log += tabs[i]; //don't expand the last bit of text.
+         if ( l < lines.length - 1 ) log += "\n";
+        }
+    //log += data;
     var logLines = log.split("\n");
     if( !maxLines ) maxLines = edtReply.GetMaxLines()-1;
     logLines = logLines.slice( -maxLines );
     log = logLines.join("\n").toString();
     edtReply.SetText( log );
     }
+    

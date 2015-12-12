@@ -1,3 +1,4 @@
+
 // Buspirate app. 
 // 
 // Note: this application only works on devices that support  
@@ -156,8 +157,7 @@ function btnConnect_OnTouch()
 } 
 
 //Called when user touches send button. 
-function btnSend_OnTouch() 
-{  
+function btnSend_OnTouch() {  
     //Get rid of blank lines, spaces etc that cause 
     //a problem for Espruino. 
     var s = edt.GetText(); 
@@ -171,7 +171,7 @@ function btnSend_OnTouch()
 
     //Send program to Espruino. 
     Send( s ); 
-} 
+    } 
 
 //Called when user touches reset button. 
 function btnReset_OnTouch() { 
@@ -206,7 +206,7 @@ function btnSave_OnTouch(item) {
     
     //Show dialog.
     dlgTxt.Show();
-}
+    }
 
 //called when user closes save name dialog
 function btnOk_OnTouch(item) {
@@ -244,9 +244,48 @@ function spin_OnTouch( item ) {
         btnUart_OnTouch();
         }
     if ("D" == cmds[item]) {
+        s = "";
+        btnMultimeter_OnTouch();
         }
     edt.SetText( s );
     edt.SetCursorPos( s.length ); //move cursor to end of string
+    }
+
+//called when user selects ADC loop mode (D)
+function btnMultimeter_OnTouch() { 
+    dlgTxt = app.CreateDialog( "Multimeter mode" );
+        
+    //Create a layout for dialog.
+    layDlg = app.CreateLayout( "linear", "Vertical,Center" );
+    dlgTxt.AddLayout( layDlg );
+
+    //layDlg.SetPadding( 0.02, 0, 0.02, 0.02 );
+    //dlgTxt.AddLayout( layDlg );
+    //layDlgL1 = app.CreateLayout( "linear", "Horizontal,Left" );
+    //layDlg.AddChild(layDlgL1);
+
+    //Create a read-only edit box to show responses. 
+    edtVolts = app.CreateText( "0.00", 0.95, 0.15, "Right, Monospace" ); 
+    edtVolts.SetMargins( 0,0,0,0.01 ); 
+    edtVolts.SetBackColor( "#333333" );
+    edtVolts.SetTextSize( 56 ); 
+    layDlg.AddChild( edtVolts );
+
+    //Create an ok button. 
+    btnMultimeterOk  = app.CreateButton( "Exit", 0.23, 0.1 ); 
+    btnMultimeterOk.SetOnTouch( btnMultimeterOk_OnTouch ); 
+    layDlg.AddChild( btnMultimeterOk ); 
+     
+    //Show dialog.
+    dlgTxt.Show();
+    Send("d");
+    }
+
+function btnMultimeterOk_OnTouch() { 
+    layDlg.DestroyChild(edtVolts);
+    edtVolts = undefined;
+    dlgTxt.Hide();
+    Send("d");
     }
 
 //called when the user selects UART mode
@@ -265,16 +304,16 @@ function btnUart_OnTouch() {
     txt+="8. 57600,9. 115200"
     spinBaud = app.CreateSpinner(txt , 0.4 );
     layDlgL1.AddChild( spinBaud );
-    
+        
     //Create data/parity spinner
     UartDP =["None 8","Even 8","Odd 8","None 9"];
     spinDP = app.CreateSpinner(UartDP.join(",") , 0.3 );
     layDlgL1.AddChild( spinDP );
-    
+        
     //Create stop bits spinner
     spinSB = app.CreateSpinner("1 ,2 " , 0.2 );
     layDlgL1.AddChild( spinSB );
-
+    
     //Create polarity spinner
     spinP = app.CreateSpinner("1 Idle 1,2 Idle 0" , 0.4 );
     layDlg.AddChild( spinP );
@@ -319,6 +358,14 @@ function Send( s ) {
 //Called when we get data from the BusPirate
 function usb_OnReceive( data ) {
     var i;
+    //if we are in meter mode, display the data
+    if (typeof(edtVolts)!='undefined') {
+        data += ":\n";
+        data = data.split(":")[1] .split("\n")[0];
+        edtVolts.SetText(data);
+        Send("d");
+        return;
+        }
     //Need to translate tabs into spaces.
     lines = data.split("\n");
     for (var l = 0; l < lines.length; l++) {

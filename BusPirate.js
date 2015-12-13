@@ -1,4 +1,3 @@
-
 // Buspirate app. 
 // 
 // Note: this application only works on devices that support  
@@ -12,9 +11,11 @@ var usb=null, reply="";
 var log="", maxLines;
 var txts="", descs=[], cmds=[], ary;
 var desc="";
+var aryParm=[];
 
 //Called when application is started. 
 function OnStart() { 
+    
     txts = app.LoadText("BusPirateCommands");
     if (!txts) { //load default values if none saved.
         txts = "[select commands]\t\r";
@@ -26,7 +27,7 @@ function OnStart() {
         txts +="Delay 1uS\t&\r";
         txts +="Delay 1mS\t%\r";
         txts +="Frequency Counter\tf\r";
-        txts +="Generate#Khz %Duty\tg\r";
+        txts +="Generate #Khz %Duty\tg\r";
         txts +="Control AUX\tc\r";
         txts +="Control /CS\tC\r";
         txts +="AUX/CS low\ta\r";
@@ -139,7 +140,8 @@ function OnStart() {
 
     //Add layout to app.     
     app.AddLayout( lay ); 
-} 
+
+    } 
 
 //Called when user touches connect button. 
 function btnConnect_OnTouch() 
@@ -236,7 +238,37 @@ function edt_OnChange() {
 //http://dangerousprototypes.com/docs/Bus_Pirate_menu_options_guide
 function spin_OnTouch( item ) {
     num = item.slice( -1 );
-    var s = edt.GetText() + cmds[item];
+    var s = item;
+    var parm = findNextParm(s,0);
+    if (parm) { //if there was a parameter marker
+        var name = s.slice(0, parm-1); //text before first parm
+        var parms=""; //units for the parm
+        var aryLay=[]; //an array to hold the lines
+        dlgTxt = app.CreateDialog( name ); //make a dialog
+        layDlg = app.CreateLayout( "linear", "Vertical,Left" ); //overall
+        dlgTxt.AddLayout( layDlg ); 
+        while (parm>0) { //for each parmameter
+            s = s.slice(parm); //cut off the prior string
+            parm = findNextParm(s,0); //go for the next one
+            parms = s.slice(0,parm?parm-1:s.length); //to next or end
+            //start a new line
+            aryLay.push(app.CreateLayout( "linear", "Horizontal,Left") );
+            layDlg.AddChild(aryLay[aryLay.length-1]);
+            //Create an edit box to get the unit
+            aryParm.push(app.CreateTextEdit("", 0.4, 0.07, "Number, Right, SingleLine" ));
+            aryLay[aryLay.length-1].AddChild(aryParm[aryParm.length-1]);
+            //with the name of the unit
+            aryLay[aryLay.length-1].AddChild(app.CreateText(parms, 0.4, 0.07, "Left"));
+            }
+        //Create an ok button. 
+        btnParmOk = app.CreateButton( "Ok", 0.23, 0.1 ); 
+        btnParmOk.SetOnTouch( btnParmOk_OnTouch ); 
+        layDlg.AddChild( btnParmOk ); 
+        //Show dialog.
+        dlgTxt.Show();
+        } // Done with parameterized items
+ 
+    s = edt.GetText() + cmds[item];
     if ("MACRO" == cmds[item]) {
         s = "<"+num+"="+edt.GetText()+">";
         }
@@ -250,6 +282,26 @@ function spin_OnTouch( item ) {
     edt.SetText( s );
     edt.SetCursorPos( s.length ); //move cursor to end of string
     }
+
+//Called when user presses Ok on parameter entry dialog
+function btnParmOk_OnTouch() { 
+    for(var i=0; i<aryParm.length; i++) { //for each parameter
+        //get it's value and append it to what we will send
+        edt.SetText(edt.GetText()+" "+aryParm[i].GetText());
+        }
+    dlgTxt.Hide(); //hope that garbage collects...
+    }
+
+//helper to find either # or % in the parameter description
+function findNextParm(item, start) {
+    var lb=item.indexOf("#",start)+1, per = item.indexOf("%",start)+1;
+    if ( (lb) + (per) > 0 ) { //if we found any parameter markers
+        if (lb) {if (per && (per<lb)) return per; else return lb; }
+        if (per) {if (lb && (lb<per)) return lb; else return per; }
+        }
+    return 0;
+    }
+
 
 //called when user selects ADC loop mode (D)
 function btnMultimeter_OnTouch() { 
@@ -287,6 +339,7 @@ function btnMultimeterOk_OnTouch() {
     dlgTxt.Hide();
     Send("d");
     }
+
 
 //called when the user selects UART mode
 function btnUart_OnTouch() {  
@@ -330,6 +383,7 @@ function btnUart_OnTouch() {
     //Show dialog.
     dlgTxt.Show();
     }
+
 
 //called when user closes UART setup dialog
 function btnUartOk_OnTouch(item) {

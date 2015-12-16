@@ -19,11 +19,23 @@ The point of this script is to make that easy by providing a list of commands, w
 
 Also:
 - "Wizard" for selecting options to enter UART mode
-- Generic "Wizard" for commands that need parameters entered, based on description of the command. E.g. "#KHz" in the description means "add an edit field in the dialog box with KHz as the prompt, and accept numbers only." So "Generate #KHz %Duty" will, when selected, popup a dialog asking for the KHz and Duty and after those values are entered, it will put them into the command string to be sent.
+- Generic "Wizard" for commands that need parameters entered, based on description of the command. E.g. "#KHz" in the description means "add an edit field in the dialog box with KHz as the prompt, and accept numbers only." So "Generate #KHz %Duty" will, when selected, popup a dialog asking for the KHz and Duty and after those values are entered, it will put them into the command string to be sent. It can also display a list of options for the parameter selection wizard. e.g. "#Select 1=one 2=two" Displays a pull down with 1=one and 2=two as the options and "Select" as the description. Somewhat limited at this point as the text of the option must be a single word. e.g. 1=this one results in two entries in the spinner: "1=this" and "one". The text before the = (if present) is used as the output. This generic wizard supports 
+- - I2C
+- - SPI
+- - 2 Wire
+- - 3 Wire
+- - Generate Frequency Dutycycle
+- - Repeat 
+
+Sadly, the SPI doesn't work because the BusPirate (firmware 6.1) doesn't accept the mode entry command in one line. I do 
+m3 1 1 1 1 1
+And it drops right into uart mode but if I do
+m5 1 1 1 1 1
+It stops and asks me for the speed. Other modes (besides m3) also work fine. Just m5, SPI. 
+
 - "Voltmeter" mode where the ADC reading is repeatedly displayed in large letters, center screen.
 
 TODO: 
-- Update some of the descriptions to include parameters. Generate (g command) and Repeat (r command) are setup now.
 - Add scaling to the voltmeter where a potentiometer can be used as a voltage divider to allow voltages higher than +5 to be read. Start by calebrating the scaling by connecting the input to one of the voltage supplies, and turning the potentiometer until the desired voltage is read. E.g. if you want a 1:10 scale, and you connect to the +5 supply, you should read 0.5 volts. Once the unit is calibrated, and the input connected to the device under test, scale the reading to the actual voltage. E.g. if scaled to 1:10, and 1 volt is read on the ADC, display 10 volts. 
 - Add a capacitance meter. Ian did this with special firmware ( https://www.youtube.com/watch?v=SqPlSPK4zyo ) but I don't see why it couldn't be done using the ADC to measure the charge curve on the cap. A macro that raises the AUX pin, delays a specific time, then reads the ADC, combined with some javascript that does a calculation...
 - Add a low frequency 'oscilloscope' mode using the binary ADC polling function. There are python scripts for this which can probably be translated. I'm not sure the DroidScript USB interface will handle binary data.

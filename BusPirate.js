@@ -42,11 +42,26 @@ function OnStart() {
         txts +="VPullup 5v\te3\r";
         txts +="HiZ Mode\tm1\r";
         txts +="UART Mode\tm3\r";
-        txts +="I2C Mode\tm4\r";
-        txts +="SPI Mode\tm5\r";
+        txts +="I2C Mode";
+        txts +=" #KHz 1=50 2=100 3=400";
+        txts +=" \tm4\r";
+        txts +="SPI Mode";
+        txts +=" #KHz 1=30 2=125 3=250 4=1000";
+        txts +=" #Clock_idle 1=low 2=high";
+        txts +=" #Clock_edge 1=idle->active 2=active->ide";
+        txts +=" #Phase 1=middle 2=end";
+        txts +=" #Output 1=open_collecter 2=normal";
+        txts +=" \tm5\r";
         txts +="1-Wire Mode\tm2\r";
-        txts +="2-Wire Mode\tm6\r";
-        txts +="3-Wire Mode\tm7\r";
+        txts +="2-Wire Mode";
+        txts +=" #KHz 1=50 2=50 3=100 4=400";
+        txts +=" #Output 1=open_collecter 2=normal";
+        txts +=" \tm6\r";
+        txts +="3-Wire Mode";
+        txts +=" #KHz 1=50 2=50 3=100 4=400";
+        txts +=" #CS 1=high 2=low";
+        txts +=" #Output 1=open_collecter 2=normal";
+        txts +=" \tm7\r";
         txts +="Keyboard Mode\tm8\r";
         txts +="LCD Mode\tm9\r";
         txts +="Bitorder MSB\tl\r";
@@ -85,7 +100,7 @@ function OnStart() {
         txts = ary[i].split("\t"); //seperate description from command
         cmds[txts[0]]=txts[1]; //associate description with command
         descs[i]=txts[0]; //build ordered array of descriptions
-        }
+        } 
     
     //Create a layout with objects vertically centered. 
     lay = app.CreateLayout( "linear", "VCenter,FillXY" );    
@@ -254,11 +269,17 @@ function spin_OnTouch( item ) {
             //start a new line
             aryLay.push(app.CreateLayout( "linear", "Horizontal,Left") );
             layDlg.AddChild(aryLay[aryLay.length-1]);
-            //Create an edit box to get the unit
-            aryParm.push(app.CreateTextEdit("", 0.4, 0.07, "Number, Right, SingleLine" ));
+            if (parms.indexOf("=")>0) {//list of #=option?
+                //Create a spinner to get the unit
+                aryParm.push(app.CreateSpinner(parms.split(" ").slice(1), 0.4, 0.07, "Right" ));
+                } 
+            else {
+                //Create an edit box to get the unit
+                aryParm.push(app.CreateTextEdit("", 0.4, 0.07, "Number, Right, SingleLine" ));
+                }
             aryLay[aryLay.length-1].AddChild(aryParm[aryParm.length-1]);
             //with the name of the unit
-            aryLay[aryLay.length-1].AddChild(app.CreateText(parms, 0.4, 0.07, "Left"));
+            aryLay[aryLay.length-1].AddChild(app.CreateText(parms,0.4,0.07,"Left, Multiline"));
             }
         //Create an ok button. 
         btnParmOk = app.CreateButton( "Ok", 0.23, 0.1 ); 
@@ -287,9 +308,12 @@ function spin_OnTouch( item ) {
 function btnParmOk_OnTouch() { 
     for(var i=0; i<aryParm.length; i++) { //for each parameter
         //get it's value and append it to what we will send
-        edt.SetText(edt.GetText()+" "+aryParm[i].GetText());
+        edt.SetText(edt.GetText()+" "+aryParm[i].GetText().split("=")[0]);
+        aryParm[i] = null;
         }
-    dlgTxt.Hide(); //hope that garbage collects...
+    aryParm = []; //clear it for next time
+    dlgTxt.Hide(); //hope that garbage collects... nope
+
     }
 
 //helper to find either # or % in the parameter description

@@ -1,5 +1,6 @@
 # DroidScriptBusPirate
-DroidScript for easier use of the BusPirate on your Android device. Have a complete, although very basic, electronics bench in your pocket on the cheap.
+DroidScript for easier use of the BusPirate on your Android device. Have a complete, although very basic, electronics bench in your pocket on the cheap. Full documentation:
+http://techref.massmind.org/techref/language/DroidScript/BusPirate/index.htm
 
 DroidScript is a free app for Android that lets you write apps in JavaScript / HTML5 /on your phone or tablet/. Let me make that clear... you can /write/ the app on your phone! If you plug in a keyboard, it's even pretty reasonable... but it also allows you to connect your workstation via browser and has a pretty nice IDE. You can always run or share your apps inside DroidScript or for $10, you can turn your DroidScripts into stand-alone real apps. 
 
@@ -23,6 +24,9 @@ Also:
 - "Wizard" for selecting options to enter UART mode. This one is handled seperatly to provide a nicer layout of the standard UART settings.
 
 - "Voltmeter" mode where the ADC reading is repeatedly displayed in large letters, center screen.
+
+For install guide, user manual see:
+http://techref.massmind.org/techref/language/DroidScript/BusPirate/index.htm
 
 TODO: 
 - Add scaling to the voltmeter where a potentiometer can be used as a voltage divider to allow voltages higher than +5 to be read. Start by calebrating the scaling by connecting the input to one of the voltage supplies, and turning the potentiometer until the desired voltage is read. E.g. if you want a 1:10 scale, and you connect to the +5 supply, you should read 0.5 volts. Once the unit is calibrated, and the input connected to the device under test, scale the reading to the actual voltage. E.g. if scaled to 1:10, and 1 volt is read on the ADC, display 10 volts. 

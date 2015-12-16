@@ -50,6 +50,7 @@ function OnStart() {
         txts +=" #Clock_idle 1=low 2=high";
         txts +=" #Clock_edge 1=idle->active 2=active->ide";
         txts +=" #Phase 1=middle 2=end";
+        txts +=" #CS 1=high 2=low";
         txts +=" #Output 1=open_collecter 2=normal";
         txts +=" \tm5\r";
         txts +="1-Wire Mode\tm2\r";

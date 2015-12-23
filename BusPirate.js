@@ -116,7 +116,8 @@ function OnStart() {
     edtReply = app.CreateText( "", 0.96, 0.6, "MultiLine,Left,Monospace" ); 
     edtReply.SetMargins( 0,0,0,0.01 ); 
     edtReply.SetBackColor( "#333333" );
-    edtReply.SetTextSize( 8 ); 
+    edtReply.SetTextSize( 8 ); // must be 8 to fit pin status
+// could be larger for most things. but changing size changes line count.
     lay.AddChild( edtReply ); 
     
     //Create an edit box containing the constructed commands
@@ -439,25 +440,34 @@ function usb_OnReceive( data ) {
     var i;
     //if we are in meter mode, display the data
     if (typeof(edtVolts)!='undefined') {
-        data += ":\n";
+        data += ":\n"; //ensure we will have delimeters
         data = data.split(":")[1] .split("\n")[0];
         edtVolts.SetText(data);
-        Send("d");
+        Send("d"); //and repeat
         return;
         }
     //Need to translate tabs into spaces.
-    lines = data.split("\n");
+    var lines = data.split("\n");
     for (var l = 0; l < lines.length; l++) {
-         tabs = lines[l].split("\t");
-         for (var i = 0; i < tabs.length-1; i++) {
-            log += tabs[i]+("        ").slice(0,8-(tabs[i].length % 8));
+        var line="";
+        tabs = lines[l].split("\t");
+        for (var i = 0; i < tabs.length-1; i++) {
+            line += tabs[i]+("        ").slice(0,8-(tabs[i].length % 8));
             }
-         log += tabs[i]; //don't expand the last bit of text.
-         if ( l < lines.length - 1 ) log += "\n";
+        line += tabs[i]; //don't expand the last bit of text.
+        if ( l < lines.length - 1 ) line += "\n";
+        log += line;
         }
-    //log += data;
+    //scroll extra lines off the top
     var logLines = log.split("\n");
-    if( !maxLines ) maxLines = edtReply.GetMaxLines()-1;
+    //could we calculate the longest line and set font size accordingly?
+    var maxChars = 0;
+    for (var line in logLines) {
+        maxChars = Math.max(maxChars, logLines[line].length);
+        }
+    //we want 8 point when the line is 80(?ish) and up to 14 point at 20.
+    edtReply.SetTextSize(Math.min(16-maxChars/10,14));
+    maxLines = edtReply.GetMaxLines()-1;
     logLines = logLines.slice( -maxLines );
     log = logLines.join("\n").toString();
     edtReply.SetText( log );

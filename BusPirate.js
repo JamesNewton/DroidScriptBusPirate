@@ -4,7 +4,7 @@
 // OTG and allow access to external serial devices. 
 // 
 // Known to work: Nexus7, GalaxyS3/S4, ExperiaZUltra, TescoHudl    
-// Don't work: Nexus4, GalaxyS1, AsusMemo
+// Don't work: Nexus4, GalaxyS1
 
 //Global variables. 
 var usb=null, reply=""; 

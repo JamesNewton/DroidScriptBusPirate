@@ -23,17 +23,18 @@ Also:
 
 - "Wizard" for selecting options to enter UART mode. This one is handled seperatly to provide a nicer layout of the standard UART settings.
 
-- "Voltmeter" mode where the ADC reading is repeatedly displayed in large letters, center screen.
+- "Voltmeter" mode where the ADC reading is repeatedly displayed in large letters, center screen. There is a user selectable scaling factor which is multiplied time the value displayed, and a calibrate button which powers up the internal supplies and explains how to connect a potentiometer so that the input voltage can be scaled, and the +5 power supply can be used as a voltage reference to calibrate the potentiometer. In order to automatically turn on the power supply, the app now tracks the BusPirate mode, and if it's in HiZ, it automatically switches to 1-Wire (can't turn on power in HiZ) and then switches back when finished.
 
 For install guide, user manual see:
 http://techref.massmind.org/techref/language/DroidScript/BusPirate/index.htm
 
 TODO: 
-- Add scaling to the voltmeter where a potentiometer can be used as a voltage divider to allow voltages higher than +5 to be read. Start by calebrating the scaling by connecting the input to one of the voltage supplies, and turning the potentiometer until the desired voltage is read. E.g. if you want a 1:10 scale, and you connect to the +5 supply, you should read 0.5 volts. Once the unit is calibrated, and the input connected to the device under test, scale the reading to the actual voltage. E.g. if scaled to 1:10, and 1 volt is read on the ADC, display 10 volts. 
 - Add a capacitance meter. Ian did this with special firmware ( https://www.youtube.com/watch?v=SqPlSPK4zyo ) but I don't see why it couldn't be done using the ADC to measure the charge curve on the cap. A macro that raises the AUX pin, delays a specific time, then reads the ADC, combined with some javascript that does a calculation...
-- Add a low frequency 'oscilloscope' mode using the binary ADC polling function. There are python scripts for this which can probably be translated. I'm not sure the DroidScript USB interface will handle binary data.
+- Add a low frequency 'oscilloscope' mode using the binary ADC polling function. There are python scripts for this which can probably be translated. I'm not sure the DroidScript USB interface will handle binary data. Update: Sadly, it doesn't appear that the USB OTG interface on the phone can handle a continuous stream of data. This may be a limitation of my phone (currently a Samsung Galaxy 6) or of DroidScript. O'scope ain't going to happen!
 - Provide some way to share custom codes with other users. 
 - Provide a way to reset custom commands back to the generic default commands.
+ 
+
 See also:
 - http://www.thingiverse.com/make:66685 3D printed case and color coded label. 
 - http://dangerousprototypes.com/docs/Bus_Pirate_menu_options_guide Menu

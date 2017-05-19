@@ -36,6 +36,7 @@ TODO:
  
 
 See also:
+- https://gist.github.com/JamesNewton/8b994528ff3ce69e60bbb67c40954cd2 Arduino based and less capable, but easy to use.
 - http://www.thingiverse.com/make:66685 3D printed case and color coded label. 
 - http://dangerousprototypes.com/docs/Bus_Pirate_menu_options_guide Menu
 - http://dangerousprototypes.com/forum/viewtopic.php?f=4&t=7564&p=62724#p62724
